@@ -5,6 +5,26 @@ const app = express()
 
 app.use(express.json())
 
+// middleware
+
+const resolverUserById = (request, response, next) => {
+
+    const { params: {id}} = request
+    const parsedId = parseInt(id)
+
+    if(isNaN(parsedId)) return response.status(400).send({message: "Bad request"})
+    
+    const findUserIndex = users.findIndex((user) => user.id === parsedId)
+
+    if(findUserIndex === -1) return response.status(404).send({message: "User not foiund"})
+    
+    request.findUserIndex = findUserIndex
+
+    next()
+
+
+}
+
 const PORT = 3000
 
 const users = [
@@ -51,15 +71,10 @@ app.get("/api/users", (req, res) => {
 
 // get 1 user
 // params returns an object
-app.get("/api/users/:id", (request, response) => {
-
-    console.log(request.params)
-    const parsedId = parseInt(request.params.id)
+app.get("/api/users/:id", resolverUserById, (request, response) => {
 
 
-    if(isNaN(parsedId)) return response.status(400).send({message: "Bad request"})
-
-    const findUser = users.find(user => user.id === parsedId)
+    const findUser = users[request.findUserIndex]
 
     if(!findUser) return response.status(404).send({message: "Bad request. User not found"})
 
@@ -77,18 +92,12 @@ app.post("/api/users", (request, response) => {
 
 
 // updating a user
-app.put("/api/users/:id", (request, response) => {
+app.put("/api/users/:id", resolverUserById, (request, response) => {
 
-    const {body, params: {id}} = request
-    const parsedId = parseInt(id)
+    const { body, findUserIndex } = request
 
-    if(isNaN(parsedId)) return response.status(400).send({message: "Bad request"})
-    
-    const findIndex = users.findIndex((user) => user.id === parsedId)
 
-    if(findIndex === -1) return response.status(404).send({message: "User not foiund"})
-
-    users[findIndex] = {id: parsedId, ...body}
+    users[findUserIndex] = {id: users[findUserIndex].id, ...body}
 
     return response.status(200).json({message: "User updated"})
 
@@ -96,18 +105,11 @@ app.put("/api/users/:id", (request, response) => {
 
 
 // editing a user
-app.patch("/api/users/:id", (request, response) => {
+app.patch("/api/users/:id", resolverUserById, (request, response) => {
 
-    const {body, params: {id}} = request
-    const parsedId = parseInt(id)
+    const {body, findUserIndex} = request
 
-    if(isNaN(parsedId)) return response.status(400).send({message: "Bad request"})
-    
-    const findIndex = users.findIndex((user) => user.id === parsedId)
-
-    if(findIndex === -1) return response.status(404).send({message: "User not foiund"})
-
-    users[findIndex] = {...users[findIndex], ...body}
+    users[findUserIndex] = {...users[findUserIndex], ...body}
 
     return response.status(200).json({message: "User updated"})
 
@@ -115,15 +117,11 @@ app.patch("/api/users/:id", (request, response) => {
 
 
 // delete user
-app.delete("/api/users/:id", (request, response) => {
-    const parsedId = parseInt(request.params.id)
-
-    const findIndex = users.findIndex(user => user.id === parsedId)
-
-    if(findIndex === -1) return response.sendStatus(404)
+app.delete("/api/users/:id", resolverUserById, (request, response) => {
+    const {findUserIndex} = request
 
     return response.status(200).send(
-        users.splice(findIndex, 1)
+        users.splice(findUserIndex, 1)
     )
 
 })
