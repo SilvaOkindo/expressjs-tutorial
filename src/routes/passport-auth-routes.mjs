@@ -8,6 +8,7 @@ authRouter.post(
   "/api/v1/auth",
   passport.authenticate("local"),
   (request, response) => {
+    console.log(request.session)
     response.sendStatus(200);
   }
 );
@@ -24,7 +25,7 @@ authRouter.post("/api/v1/auth/logout", (request, response) => {
 
 authRouter.get("/api/v1/auth/status", (request, response) => {
 
-  console.log(request.user)
+  //console.log(request.user)
   console.log(request.session)
 
   return request.user

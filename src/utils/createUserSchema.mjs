@@ -20,4 +20,10 @@ export const createUserValidationSchema = {
         errorMessage: "Age must be a non-negative integer",
       },
     },
+
+    password: {
+      notEmpty: {
+        errorMessage: "Password cannot be empty"
+      }
+    }
   };

@@ -1,6 +1,8 @@
 import passpport from "passport";
 import { Strategy } from "passport-local";
 import { users } from "../mockdata/mock-users.mjs";
+import { User } from "../mongose/schema/user.mjs";
+import { comparePassword } from "../utils/helper.mjs";
 
 passpport.serializeUser((user, done) => {
   done(null, user.id)
@@ -9,7 +11,7 @@ passpport.serializeUser((user, done) => {
 passpport.deserializeUser((id, done) => {
   try {
 
-    const findUser = users.find(user => user.id === id)
+    const findUser = User.findById(id)
 
     if(!findUser) throw new Error("User not found")
     
@@ -22,13 +24,12 @@ passpport.deserializeUser((id, done) => {
 })
 
 export default passpport.use(
-  new Strategy((username, password, done) => {
-    console.log("inside local strategy: " + username)
+  new Strategy( async (username, password, done) => {
     try {
-      const findUser = users.find((user) => user.username === username);
+      const findUser = await User.findOne({username})
       if (!findUser) throw new Error("User not found");
 
-      if (findUser.password !== password) throw new Error("Wrong creditials");
+      if (!comparePassword(password, findUser.password)) throw new Error("Wrong creditials");
 
       done(null, findUser);
     } catch (err) {
