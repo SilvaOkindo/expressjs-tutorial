@@ -24,6 +24,7 @@ mongoose
   .catch((err) => console.log(err));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // To parse URL-encoded data
 app.use(cookieParse("helloworld"));
 app.use(
   session({
@@ -55,7 +56,7 @@ app.use(productRoutes);
 
 
 
-const PORT = 3000;
+const PORT = 3003;
 
 app.get("/", (req, res) => {
   console.log(req.session);
@@ -119,7 +120,7 @@ app.post("/api/cart", (request, response) => {
 });
 
 app.get("/api/cart", (request, response) => {
-  if (!request.session.user) return response.statusCode(401);
+  if (!request.session.user) return response.sendStatus(401);
 
   return response.status(200).send(request.session.cart ?? []);
 });

@@ -1,6 +1,5 @@
 import passpport from "passport";
 import { Strategy } from "passport-local";
-import { users } from "../mockdata/mock-users.mjs";
 import { User } from "../mongose/schema/user.mjs";
 import { comparePassword } from "../utils/helper.mjs";
 

@@ -6,8 +6,11 @@ import {
   checkSchema,
 } from "express-validator";
 
+import multer from "multer";
+const upload = multer({ dest: "uploads/" });
+
 import { createUserValidationSchema } from "../utils/createUserSchema.mjs";
-import { users } from "../mockdata/mock-users.mjs";
+//import { users } from "../mockdata/mock-users.mjs";
 import { User } from "../mongose/schema/user.mjs";
 import { hashPasswords } from "../utils/helper.mjs";
 
@@ -41,11 +44,13 @@ userRouter.get(
     .isLength({ min: 3, max: 10 })
     .withMessage("Must be at least 3-10 characters"),
 
-  (req, res) => {
+  async (req, res) => {
     const result = validationResult(req);
 
     // sessions checking
     console.log("Session id in users/api: " + req.sessionID);
+
+    const users = await User.find()
 
     req.sessionStore.get(req.session.id, (err, sessionData) => {
       if (err) {
@@ -83,8 +88,11 @@ userRouter.get("/api/users/:id", resolverUserById, (request, response) => {
 // adding user
 userRouter.post(
   "/api/users",
+  upload.single("profileImage"),
   checkSchema(createUserValidationSchema),
-  async (request, response) => {
+  // profile image upload
+
+  async (request, response, next) => {
     const result = validationResult(request);
 
     // checking for error
@@ -94,26 +102,28 @@ userRouter.post(
     }
 
     try {
+      const data = matchedData(request);
 
-        const data = matchedData(request);
+      console.log(data);
 
-        console.log(data);
+      // hashing password
+      data.password = hashPasswords(data.password);
 
-        // hashing password
-        data.password = hashPasswords(data.password)
-    
-        const newUSer = await User(data)
+      const newUSer = new User({
+        username: data.username,
+        age: data.age,
+        password: data.password,
+        profileImage: request.file.path,
+      });
 
-        const savedUser = newUSer.save()
-        //console.log(newUSer)
-        
-        return response.status(201).json({ message: "user added successfully" });
+      await newUSer.save();
+      //console.log(newUSer)
 
-    } catch(err) {
-        console.log(err)
-        return response.sendStatus(400)
+      return response.status(201).json({ message: "user added successfully" });
+    } catch (err) {
+      console.log(err);
+      return response.status(500).json({ message: err.message });
     }
-
   }
 );
 
