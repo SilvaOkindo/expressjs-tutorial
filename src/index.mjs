@@ -56,7 +56,7 @@ app.use(productRoutes);
 
 
 
-const PORT = 3003;
+const PORT = 3000;
 
 app.get("/", (req, res) => {
   console.log(req.session);
@@ -128,3 +128,8 @@ app.get("/api/cart", (request, response) => {
 app.listen(PORT, () => {
   console.log(`Serving running on ${PORT}`);
 });
+
+
+// client id :1300779781415243848
+// client secret: yHdaDzC1blbLf05UjFCBBlG60hoJuXz7
+// http://localhost:3000/api/auth/discord
